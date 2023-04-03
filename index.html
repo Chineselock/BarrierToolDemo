@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+</head>
+
+<body>
+  <div class="barrier">
+    <ul style="display: flex; padding-left: 20%">
+      <li>
+        <img src="./icon/reset.png" onclick="reset()" alt="重置工具条" /><span>重置</span>
+      </li>
+      <li>
+        <img src="./icon/audio.png" onclick="showAudio()" alt="开关语音" /><span>语音</span>
+      </li>
+      <li>
+        <img src="./icon/speed.png" alt="切换语速" onclick="changeSpeed()" /><span>语速</span>
+      </li>
+      <li style="margin-left: 4%">
+        <img src="./icon/zoomout.png" onclick="zoomin()" alt="放大页面" /><span>放大</span>
+      </li>
+      <li>
+        <img src="./icon/zoomin.png" onclick="zoomout()" alt="缩小页面" /><span>缩小</span>
+      </li>
+      <li style="margin-left: 4%">
+        <img src="./icon/cursor.png" onclick="changeCursorstyle()" alt="更改鼠标样式" /><span>鼠标样式</span>
+      </li>
+      <li>
+        <img src="./icon/pointer.png" onclick="showCursor()" alt="开关十字光标" /><span>光标</span>
+      </li>
+      <li>
+        <img src="./icon/bigtext.png" onclick="showBigText()" alt="开关字幕" /><span>字幕</span>
+      </li>
+      <li style="margin-left: 4%">
+        <img src="./icon/pointeread.png" alt="阅读方式" /><span>阅读方式</span>
+      </li>
+      <li style="margin-left: 4%">
+        <img src="./icon/close.png" onclick="quit()" alt="退出无障碍浏览" /><span>退出</span>
+      </li>
+    </ul>
+    <div id="pointer-follow-html">
+      <div id="pointer-follow-html-x"></div>
+      <div id="pointer-follow-html-y"></div>
+    </div>
+    <div id="bigtext-html">
+      <div id="bigtext-content"></div>
+      <button onclick="showBigText()" class="close">关闭</button>
+    </div>
+  </div>
+  <div>
+    <button onclick="showTool()" style="display: block;">无障碍浏览</button>
+    <img src="./icon/audio-close-hover.png" style="display: block; margin-top: 20px;" alt="这是一个图片">
+    <a href="https://baidu.com">百度一下</a>
+    <p>这是一段文本</p>
+  </div>
+</body>
+
+</html>
+<script>
+  let data = {
+    show: false,
+    size: 1.0,
+    cursor: false,
+    showPointer: false,
+    audio: false,
+    audioSpeed: 2,
+    bigText: false,
+    audioTabText: {
+      pointeread: "已开启指读模式",
+      bigtextOpen: "大字幕已开启",
+      bigtextClose: "大字幕已关闭",
+      pointerFollowOpen: "十字光标已开启",
+      pointerFollowClose: "十字光标已关闭",
+      cursorAutoOpen: "大鼠标已开启",
+      cursorAutoClose: "大鼠标已关闭",
+      zoomOut: "页面已缩小",
+      zoomOutEnd: "页面已缩到最小",
+      zoomMin: "页面已放大",
+      zoomMinEnd: "页面已放至最大",
+      speedQuick: "语速已加快",
+      speedMiddle: "语速已正常",
+      speedSlow: "语速已减缓",
+      audioOpen: "语音已开启",
+      audioClose: "语音已关闭",
+      reset: "已重置",
+    }
+  };
+  // 缩小页面
+  function zoomout() {
+    if (data.size <= 1.0) {
+      window.playAudio(data.audioTabText.zoomOutEnd);
+      return;
+    }
+    let size = parseFloat((data.size - 0.1).toFixed(10));
+    data.size = size;
+    [].forEach.call(document.body.children, function (el) {
+      el.style.zoom = size;
+    });
+    window.playAudio(data.audioTabText.zoomOut);
+  }
+  // 放大页面
+  function zoomin() {
+    if (data.size >= 1.4) {
+      window.playAudio(data.audioTabText.zoomMinEnd);
+      return;
+    }
+    let size = parseFloat((data.size + 0.1).toFixed(10));
+    data.size = size;
+    [].forEach.call(document.body.children, function (el) {
+      el.style.zoom = size;
+    });
+    window.playAudio(data.audioTabText.zoomMin);
+  }
+  // 鼠标样式
+  function changeCursorstyle() {
+    let body = document.documentElement || document.body;
+    if (data.cursor) {
+      body.style.cursor = "default";
+      data.cursor = false;
+      window.playAudio(data.audioTabText.cursorAutoClose);
+    } else {
+      body.style.cursor = "url(./allaw.cur),auto";
+      data.cursor = true;
+      window.playAudio(data.audioTabText.cursorAutoOpen);
+    }
+  }
+  // 十字光标
+  // 十字光标的事件侦听器
+  let crossCursor = function (event) {
+    var event = window.event || event;
+    let pointerX = document.getElementById("pointer-follow-html-x"),
+      pointerY = document.getElementById("pointer-follow-html-y");
+    pointerX.style.top = event.clientY + "px";
+    pointerY.style.left = event.clientX + "px";
+  }
+  function showCursor() {
+    let body = document.documentElement || document.body;
+    if (data.showPointer) {
+      data.showPointer = false;
+      document.getElementById('pointer-follow-html').style.visibility = "hidden"
+      body.removeEventListener("mousemove", crossCursor);
+      window.playAudio(data.audioTabText.pointerFollowClose);
+    } else {
+      data.showPointer = true;
+      document.getElementById('pointer-follow-html').style.visibility = "visible"
+      body.addEventListener("mousemove", crossCursor);
+      window.playAudio(data.audioTabText.pointerFollowOpen);
+    }
+  }
+  // 大字幕
+  // 识别元素类型
+  function ruleType(target) {
+    let __role =
+      (!!target.getAttribute("role") &&
+        target.getAttribute("role").toUpperCase()) ||
+      target.tagName.toUpperCase();
+
+    let __roleName = {
+      IMG: "图片",
+      BUTTON: "按钮",
+      INPUT: "输入框",
+      CHECKBOX: "复选框",
+      RADIO: "单选框",
+      OPTION: "下拉框",
+      A: "链接",
+      VIDEO: "视频",
+    };
+    // 识别图片是否是图片链接
+    if (
+      __role == "A" &&
+      target.children.length &&
+      target.children.tagName.toUpperCase() == "IMG"
+    ) {
+      console.log(target.children);
+      return "图片链接";
+    }
+    return __roleName[__role] || "";
+  }
+  // 拼接字符串
+  function parseTagText(target) {
+    let __name = ruleType(target);
+    if (target.children.length <= 1) {
+      if (target.alt || target.title || target.innerText) {
+        return ""
+          .concat(__name, " ")
+          .concat(target.alt || target.title || target.innerText);
+      }
+      return "";
+    }
+    return "";
+  }
+  function getText(event) {
+    event = window.event || event;
+    let target = event.target || event.srcElement;
+    let captions = document.getElementById("bigtext-content");
+    captions.innerText = parseTagText(target);
+  }
+  //显示底下的字幕文本框
+  function showBigText() {
+    let body = document.documentElement || document.body;
+    if (data.bigText) {
+      data.bigText = false;
+      document.getElementById('bigtext-html').style.display = "none"
+      body.removeEventListener("mouseover", getText);
+      window.playAudio(data.audioTabText.bigtextClose);
+    } else {
+      data.bigText = true;
+      body.addEventListener("mouseover", getText);
+      document.getElementById('bigtext-html').style.display = "block"
+      window.playAudio(data.audioTabText.bigtextClose);
+    }
+  }
+  // 语音
+  let speech = new SpeechSynthesisUtterance();
+  let timer=null
+  // 播放语音的函数
+  function playAudio(text) {
+    if (!data.audio) {
+      return
+    }
+    speechSynthesis.cancel();
+    speech.rate = data.audioSpeed;
+    speech.text = text;
+    speechSynthesis.speak(speech);
+  }
+  // 获取元素内容并播放语音的侦听器
+  function audioPlayer(event) {
+    event = window.event || event;
+    let target = event.target || event.srcElement;
+    let __text = parseTagText(target);
+    if (__text == "") {
+      return;
+    }
+    if(timer) clearTimeout(timer)
+    timer=window.setTimeout(playAudio(__text), 300);
+  }
+  // 开关语音
+  function showAudio() {
+    let body = document.documentElement || document.body;
+    if (data.audio) {
+      playAudio(data.audioTabText.audioClose);
+      data.audio = false;
+      body.removeEventListener("mouseover", audioPlayer);
+    } else {
+      data.audio = true;
+      playAudio(data.audioTabText.audioOpen);
+      body.addEventListener("mouseover", audioPlayer);
+    }
+  }
+  function changeSpeed() {
+    if (data.audioSpeed == 2) {
+      data.audioSpeed = 3;
+      playAudio(data.audioTabText.speedQuick);
+    }
+    else if (data.audioSpeed == 3) {
+      data.audioSpeed = 1;
+      playAudio(data.audioTabText.speedSlow);
+    }
+    else if (data.audioSpeed == 1) {
+      data.audioSpeed = 2;
+      playAudio(data.audioTabText.speedMiddle);
+    }
+  }
+  // 重置
+  function reset() {
+    let body = document.documentElement || document.body;
+    body.style.cursor = "default";
+    data.cursor = false;
+    data.showPointer = false;
+    data.size = 1;
+    document.getElementById('pointer-follow-html').style.display = "none"
+    document.getElementById('bigtext-html').style.display = "none"
+    body.removeEventListener("mousemove", crossCursor);
+    [].forEach.call(document.body.children, function (el) {
+      el.style.zoom = 1;
+    });
+    data.bigText = false;
+    data.audioSpeed = 2
+    window.playAudio(data.audioTabText.reset);
+    data.audio = false;
+  }
+  // 开关工具条
+  function showTool(){
+    if(data.show){
+      data.show=false
+      document.getElementsByClassName('barrier')[0].style.top='-120px'
+      document.documentElement.style.paddingTop='0px'
+    }
+    else{
+      data.show=true
+      document.getElementsByClassName('barrier')[0].style.top='0px'
+      document.documentElement.style.paddingTop='120px'
+    }
+  }
+  function quit() {
+    reset();
+    showTool()
+  }
+</script>
+<style>
+  .barrier {
+    min-width: 1200px;
+    height: 120px;
+    width: 100%;
+    background: #314271;
+    overflow: hidden;
+    z-index: 99;
+    position: fixed;
+    display: block;
+    top: -120px;
+    left: 0;
+    transition: top .5s ease;
+  }
+
+  .barrier li {
+    text-align: center;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .barrier li img {
+    height: 52px;
+    width: 52px;
+    border-radius: 5px;
+    display: block;
+    margin: 10px;
+  }
+
+  .barrier li span {
+    font-weight: bold;
+    color: #fff;
+  }
+
+  #pointer-follow-html {
+    /* 开启硬件加速 */
+    transform: translateZ(999);
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  #pointer-follow-html-x,
+  #pointer-follow-html-y {
+    transform: none;
+    transform-origin: 0px 0px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #ff0000 !important;
+    width: 100%;
+    height: 4px;
+  }
+
+  #pointer-follow-html-y {
+    height: 100%;
+    width: 4px;
+  }
+
+  #bigtext-html {
+    z-index: 999;
+    height: 150px;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    border-top: 1px solid #797f8d;
+    background-color: #ffffff;
+    display: none;
+  }
+
+  #bigtext-content {
+    height: 100%;
+    background-color: #ffffff;
+    font-size: 53px;
+    color: #333 !important;
+    text-align: center;
+    font-weight: bold;
+    width: 93%;
+    margin: 0 auto;
+  }
+
+  .close {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    cursor: pointer;
+  }
+
+  #bigtext-html i {
+    display: block;
+    color: rebeccapurple;
+  }
+</style>
